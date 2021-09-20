@@ -8,9 +8,20 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Resource",
+"class": "TerrainType",
+"language": "GDScript",
+"path": "res://TerrainTypes.gd"
+} ]
+_global_script_class_icons={
+"TerrainType": ""
+}
+
 [application]
 
 config/name="Proc Landmass"
+run/main_scene="res://Landmass2D.tscn"
 config/icon="res://icon.png"
 
 [physics]

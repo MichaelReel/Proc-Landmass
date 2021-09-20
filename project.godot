@@ -24,6 +24,10 @@ config/name="Proc Landmass"
 run/main_scene="res://Landmass2D.tscn"
 config/icon="res://icon.png"
 
+[display]
+
+window/stretch/shrink=4.0
+
 [physics]
 
 common/enable_pause_aware_picking=true

@@ -9,13 +9,13 @@
 config_version=4
 
 _global_script_classes=[ {
-"base": "Resource",
-"class": "TerrainType",
+"base": "Reference",
+"class": "NoiseLib",
 "language": "GDScript",
-"path": "res://TerrainTypes.gd"
+"path": "res://lib/noise_lib.gd"
 } ]
 _global_script_class_icons={
-"TerrainType": ""
+"NoiseLib": ""
 }
 
 [application]

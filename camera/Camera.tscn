@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://camera/CameraControl.gd" type="Script" id=1]
+
+[sub_resource type="BoxShape" id=1]
+
+[node name="CameraControl" type="KinematicBody"]
+script = ExtResource( 1 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+shape = SubResource( 1 )
+
+[node name="CameraMount" type="Spatial" parent="."]
+
+[node name="Camera" type="Camera" parent="CameraMount"]
+
+[node name="SpotLight" type="SpotLight" parent="CameraMount/Camera"]
+spot_range = 53.7
+spot_attenuation = 2.46229
+spot_angle = 15.7
+spot_angle_attenuation = 2.63902

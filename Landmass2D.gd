@@ -69,16 +69,5 @@ func update_texture_rect():
 			noise_color_array = NoiseLib.generate_height_array(noise_map)
 		DRAW_MODE.ColorMap:
 			noise_color_array = NoiseLib.generate_region_array(noise_map, terrain_types)
-	var noise_image = generate_image(width, height, noise_color_array)
-	display_image(noise_image)
-
-func generate_image(width, height, noise_color_array: PoolByteArray) -> Image:
-	var noise_image : Image = Image.new()
-	noise_image.create_from_data(width, height, false, Image.FORMAT_RGBA8, noise_color_array)
-	return noise_image
-	
-func display_image(noise_image : Image):
-	var imageTexture := ImageTexture.new()
-	imageTexture.create_from_image(noise_image)
-	self.texture = imageTexture
-	imageTexture.resource_name = "Land Mass"
+	var noise_texture = NoiseLib.generate_texture(width, height, noise_color_array, "Land Mass")
+	self.texture = noise_texture

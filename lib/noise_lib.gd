@@ -17,10 +17,10 @@ static func generate_noise_map(width: int, height: int, nseed: int, period: floa
 	var max_noise_height = -1.0
 	
 	var noise_map : Array = []
-	for y in range(0, height):
+	for y in range(height):
 		noise_map.append([])
 		noise_map[y].resize(width)
-		for x in range(0, width):
+		for x in range(width):
 			var base_noise := noise_base.get_noise_2d(x, y)
 			noise_map[y][x] = base_noise
 			min_noise_height = min(min_noise_height, base_noise)
@@ -57,3 +57,12 @@ static func generate_region_array(noise_map : Array, height_color_map: Dictionar
 					bytes.append(color.a8)
 					break
 	return bytes
+
+
+static func generate_texture(width : int, height : int, noise_color_array : PoolByteArray, texture_name : String) -> Texture:
+	var noise_image : Image = Image.new()
+	noise_image.create_from_data(width, height, false, Image.FORMAT_RGBA8, noise_color_array)
+	var noise_texture := ImageTexture.new()
+	noise_texture.create_from_image(noise_image)
+	noise_texture.resource_name = texture_name
+	return noise_texture

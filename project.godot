@@ -21,7 +21,7 @@ _global_script_class_icons={
 [application]
 
 config/name="Proc Landmass"
-run/main_scene="res://Landmass2D.tscn"
+run/main_scene="res://Main.tscn"
 config/icon="res://icon.png"
 
 [display]

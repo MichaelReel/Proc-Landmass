@@ -13,6 +13,7 @@ static func generate_noise_map(width: int, height: int, nseed: int, period: floa
 	noise_base.set_persistence(persistence)
 	noise_base.set_lacunarity(lacunarity)
 	
+	# Creating bugs for when we do chunks
 	var min_noise_height = 1.0
 	var max_noise_height = -1.0
 	

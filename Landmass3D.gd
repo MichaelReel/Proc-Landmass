@@ -1,6 +1,7 @@
 tool
 extends MeshInstance
 
+const map_chunk_size : int = 65
 const regions = {
 	"Water Deep": Color(0.0, 0.25, 1.0),
 	"Water Shallow": Color(0.0, 0.5, 1.0),
@@ -11,7 +12,6 @@ const regions = {
 	"Rock 2": Color(0.3, 0.2, 0.1),
 	"Snow": Color(0.9, 0.9, 0.9),
 }
-
 
 static func default_terrain_curve() -> Curve:
 	var terrain_curve = Curve.new()
@@ -24,8 +24,7 @@ export (float, EXP, 1.0, 2048.0) var noise_scale : float = 64.0 setget set_perio
 export (int) var octaves : int = 4 setget set_octaves
 export (float, 0.0, 1.0, 0.05) var persistence : float = 0.5 setget set_persistence
 export (float) var lacunarity : float = 2.0 setget set_lacunarity
-export (int) var sample_width : int = 50 setget set_width
-export (int) var sample_height : int = 50 setget set_height
+export (int, 0, 5) var level_of_detail : int = 0 setget set_level_of_detail
 export (float, 0.0, 2.0, 0.05) var terrain_multiplier : float = 1.0 setget set_terrain_multiplier
 export (Curve) var terrain_height_curve : Curve = default_terrain_curve()
 
@@ -64,25 +63,21 @@ func set_terrain_types(value : Dictionary):
 	terrain_types = value
 	update_terrain_mesh()
 
-func set_width(value : int):
-	sample_width = value
+func set_level_of_detail(value : int):
+	level_of_detail = value
 	update_terrain_mesh()
 
-func set_height(value : int):
-	sample_height = value
-	update_terrain_mesh()
-	
 func set_terrain_multiplier(value : float):
 	terrain_multiplier = value
 	update_terrain_mesh()
 
 func update_terrain_mesh():	
-	var noise_map = NoiseLib.generate_noise_map(sample_width, sample_height, 3, noise_scale, octaves, persistence, lacunarity)
+	var noise_map = NoiseLib.generate_noise_map(map_chunk_size, map_chunk_size, 3, noise_scale, octaves, persistence, lacunarity)
 	var map_scale : Vector3 = Vector3(scale.x, scale.y * terrain_multiplier, scale.z)
-	mesh = generate_terrain_mesh(noise_map, map_scale, terrain_height_curve)
+	mesh = generate_terrain_mesh(noise_map, map_scale, terrain_height_curve, level_of_detail)
 	
 	var noise_color_array : PoolByteArray = NoiseLib.generate_region_array(noise_map, terrain_types)
-	var noise_texture : Texture = NoiseLib.generate_texture(sample_width, sample_height, noise_color_array, "Terrain Albedo")
+	var noise_texture : Texture = NoiseLib.generate_texture(map_chunk_size, map_chunk_size, noise_color_array, "Terrain Albedo")
 	var spatial_material : Material = mesh.surface_get_material(0)
 	if not spatial_material is SpatialMaterial:
 		spatial_material = SpatialMaterial.new()
@@ -138,17 +133,25 @@ class MeshData:
 		mesh.regen_normalmaps()
 		return mesh
 
-func generate_terrain_mesh(noise_map : Array, mesh_scale : Vector3, mesh_height_curve: Curve) -> Mesh:
+func generate_terrain_mesh(
+	noise_map : Array, 
+	mesh_scale : Vector3, 
+	mesh_height_curve : Curve, 
+	lod_exp : int
+) -> Mesh:
 	var width := len(noise_map[0])
 	var breadth := len(noise_map)
 	var start_x := (width - 1) / -2.0
 	var start_y := -0.5
 	var start_z := (breadth - 1) / -2.0
+	var mesh_lod_increment := int(pow(2, lod_exp))
+	#warning-ignore:integer_division
+	var verts_per_line = ((width - 1) / mesh_lod_increment) + 1
 	
-	var mesh_data = MeshData.new(width, breadth)
+	var mesh_data = MeshData.new(verts_per_line, verts_per_line)
 	var vertex_index = 0
-	for z in range(breadth):
-		for x in range(width):
+	for z in range(0, breadth, mesh_lod_increment):
+		for x in range(0, width, mesh_lod_increment):
 			var y : float = mesh_height_curve.interpolate(noise_map[z][x])
 			mesh_data.vertices[vertex_index] = Vector3(
 				(start_x + x) * mesh_scale.x / width, 
@@ -158,7 +161,12 @@ func generate_terrain_mesh(noise_map : Array, mesh_scale : Vector3, mesh_height_
 			mesh_data.uvs[vertex_index] = Vector2(x / float(width), z / float(breadth))
 			
 			if x < width - 1 and z < breadth - 1:
-				mesh_data.add_quad(vertex_index, vertex_index + 1, vertex_index + width, vertex_index + width + 1)
+				mesh_data.add_quad(
+					vertex_index,
+					vertex_index + 1,
+					vertex_index + verts_per_line,
+					vertex_index + verts_per_line + 1
+				)
 			
 			vertex_index += 1
 			

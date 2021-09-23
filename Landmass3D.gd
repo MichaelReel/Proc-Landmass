@@ -12,12 +12,22 @@ const regions = {
 	"Snow": Color(0.9, 0.9, 0.9),
 }
 
-export (float, 1.0, 2048.0) var noise_scale : float = 64.0 setget set_period
+
+static func default_terrain_curve() -> Curve:
+	var terrain_curve = Curve.new()
+	terrain_curve.add_point(Vector2(0.0, 0.0))
+	terrain_curve.add_point(Vector2(0.4, 0.0))
+	terrain_curve.add_point(Vector2(1.0, 1.0))
+	return terrain_curve
+
+export (float, EXP, 1.0, 2048.0) var noise_scale : float = 64.0 setget set_period
 export (int) var octaves : int = 4 setget set_octaves
-export (float, 0.0, 1.0) var persistence : float = 0.5 setget set_persistence
+export (float, 0.0, 1.0, 0.05) var persistence : float = 0.5 setget set_persistence
 export (float) var lacunarity : float = 2.0 setget set_lacunarity
-export (int) var sample_width : int = 50
-export (int) var sample_height : int = 50
+export (int) var sample_width : int = 50 setget set_width
+export (int) var sample_height : int = 50 setget set_height
+export (float, 0.0, 2.0, 0.05) var terrain_multiplier : float = 1.0 setget set_terrain_multiplier
+export (Curve) var terrain_height_curve : Curve = default_terrain_curve()
 
 export (Dictionary) var terrain_types : Dictionary = {
 	0.3: regions["Water Deep"],
@@ -61,10 +71,15 @@ func set_width(value : int):
 func set_height(value : int):
 	sample_height = value
 	update_terrain_mesh()
+	
+func set_terrain_multiplier(value : float):
+	terrain_multiplier = value
+	update_terrain_mesh()
 
-func update_terrain_mesh():
+func update_terrain_mesh():	
 	var noise_map = NoiseLib.generate_noise_map(sample_width, sample_height, 3, noise_scale, octaves, persistence, lacunarity)
-	mesh = generate_terrain_mesh(noise_map, scale)
+	var map_scale : Vector3 = Vector3(scale.x, scale.y * terrain_multiplier, scale.z)
+	mesh = generate_terrain_mesh(noise_map, map_scale, terrain_height_curve)
 	
 	var noise_color_array : PoolByteArray = NoiseLib.generate_region_array(noise_map, terrain_types)
 	var noise_texture : Texture = NoiseLib.generate_texture(sample_width, sample_height, noise_color_array, "Terrain Albedo")
@@ -123,7 +138,7 @@ class MeshData:
 		mesh.regen_normalmaps()
 		return mesh
 
-func generate_terrain_mesh(noise_map : Array, mesh_scale : Vector3) -> Mesh:
+func generate_terrain_mesh(noise_map : Array, mesh_scale : Vector3, mesh_height_curve: Curve) -> Mesh:
 	var width := len(noise_map[0])
 	var breadth := len(noise_map)
 	var start_x := (width - 1) / -2.0
@@ -134,10 +149,10 @@ func generate_terrain_mesh(noise_map : Array, mesh_scale : Vector3) -> Mesh:
 	var vertex_index = 0
 	for z in range(breadth):
 		for x in range(width):
-			var y : float = noise_map[z][x]
+			var y : float = mesh_height_curve.interpolate(noise_map[z][x])
 			mesh_data.vertices[vertex_index] = Vector3(
 				(start_x + x) * mesh_scale.x / width, 
-				(start_y + y) * mesh_scale.y, 
+				(start_y + y) * mesh_scale.y,
 				(start_z + z) * mesh_scale.z / breadth
 			)
 			mesh_data.uvs[vertex_index] = Vector2(x / float(width), z / float(breadth))

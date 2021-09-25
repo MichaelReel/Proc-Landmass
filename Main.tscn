@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Landmass3D.tscn" type="PackedScene" id=1]
 [ext_resource path="res://camera/Camera.tscn" type="PackedScene" id=2]
@@ -36,9 +36,6 @@ surfaces/0 = {
 "vertex_count": 1089
 }
 
-[sub_resource type="Curve" id=5]
-_data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.349345, 0.390909 ), 0.0, 0.0, 0, 0, Vector2( 0.482533, 0.4 ), 0.0, 0.0, 0, 0, Vector2( 0.975983, 0.790909 ), 1.57543, 1.57543, 0, 0, Vector2( 0.99345, 0.963636 ), 4.16363, 0.0, 0, 0 ]
-
 [sub_resource type="CylinderMesh" id=6]
 top_radius = 0.1
 bottom_radius = 0.1
@@ -52,20 +49,6 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 22.6002 )
 [node name="Landmass3D" parent="." instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 0.5, 0, 0, 0, 1, 0, 0, 0 )
 mesh = SubResource( 10 )
-noise_seed = 2
-level_of_detail = 1
-terrain_multiplier = 0.6
-terrain_height_curve = SubResource( 5 )
-terrain_types = {
-0.3: Color( 0, 0.25, 1, 1 ),
-0.4: Color( 0, 0.5, 1, 1 ),
-0.45: Color( 0.94, 0.9, 0.55, 1 ),
-0.55: Color( 0.16, 0.66, 0.16, 1 ),
-0.6: Color( 0.08, 0.42, 0.08, 1 ),
-0.7: Color( 0.37, 0.24, 0.11, 1 ),
-0.9: Color( 0.3, 0.2, 0.1, 1 ),
-1.0: Color( 0.9, 0.9, 0.9, 1 )
-}
 
 [node name="CameraControl" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0 )

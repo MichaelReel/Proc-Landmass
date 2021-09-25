@@ -1,4 +1,4 @@
-extends Reference
+extends Object
 
 class_name ChunkLib
 

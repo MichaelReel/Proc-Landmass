@@ -22,6 +22,19 @@ static func default_terrain_curve() -> Curve:
 	terrain_curve.add_point(Vector2(1.0, 1.0))
 	return terrain_curve
 
+static func default_terrain_types() -> Dictionary:
+	var types : Dictionary = {
+		0.3: regions["Water Deep"],
+		0.4: regions["Water Shallow"],
+		0.45: regions["Sand"],
+		0.55: regions["Grass 1"],
+		0.6: regions["Grass 2"],
+		0.7: regions["Rock 1"],
+		0.9: regions["Rock 2"],
+		1.0: regions["Snow"],
+	}
+	return types
+
 export (int) var noise_seed : int = 3 setget set_seed
 export (float, EXP, 1.0, 2048.0) var noise_scale : float = 64.0 setget set_period
 export (int) var octaves : int = 4 setget set_octaves
@@ -30,21 +43,12 @@ export (float) var lacunarity : float = 2.0 setget set_lacunarity
 export (int, 0, 5) var level_of_detail : int = 0 setget set_level_of_detail
 export (float, 0.0, 2.0, 0.05) var terrain_multiplier : float = 1.0 setget set_terrain_multiplier
 export (Curve) var terrain_height_curve : Curve = default_terrain_curve()
+export (Dictionary) var terrain_types : Dictionary = default_terrain_types() setget set_terrain_types
 
-export (Dictionary) var terrain_types : Dictionary = {
-	0.3: regions["Water Deep"],
-	0.4: regions["Water Shallow"],
-	0.45: regions["Sand"],
-	0.55: regions["Grass 1"],
-	0.6: regions["Grass 2"],
-	0.7: regions["Rock 1"],
-	0.9: regions["Rock 2"],
-	1.0: regions["Snow"],
-} setget set_terrain_types
-
-
+## Tool functions
 func _ready():
-	update_terrain_mesh()
+	if Engine.editor_hint:
+		update_terrain_mesh()
 
 func set_seed(value : int):
 	noise_seed = value
@@ -97,5 +101,17 @@ func update_terrain_mesh():
 	spatial_material.albedo_texture = map_data.texture_map
 	mesh.surface_set_material(0, spatial_material)
 
+## Non-tool instance functions
+
+func set_values(nseed : int, nscale : float, oct : int, per : float, lac : float, lod : int, mult : float, curve : Curve, ttypes : Dictionary):
+	noise_seed = nseed
+	noise_scale = nscale
+	octaves = oct
+	persistence = per
+	lacunarity = lac
+	level_of_detail = lod
+	terrain_multiplier = mult
+	terrain_height_curve = curve
+	terrain_types = ttypes
 
 

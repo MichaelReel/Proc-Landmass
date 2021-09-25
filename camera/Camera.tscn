@@ -13,6 +13,7 @@ shape = SubResource( 1 )
 [node name="CameraMount" type="Spatial" parent="."]
 
 [node name="Camera" type="Camera" parent="CameraMount"]
+far = 1000.0
 
 [node name="SpotLight" type="SpotLight" parent="CameraMount/Camera"]
 spot_range = 53.7

@@ -1,6 +1,8 @@
 tool
 extends MeshInstance
 
+class_name Landmass3D
+
 const map_chunk_size : int = 65
 const regions = {
 	"Water Deep": Color(0.0, 0.25, 1.0),

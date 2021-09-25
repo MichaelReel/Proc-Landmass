@@ -9,19 +9,25 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "MeshInstance",
+"class": "Landmass3D",
+"language": "GDScript",
+"path": "res://Landmass3D.gd"
+}, {
 "base": "Reference",
 "class": "NoiseLib",
 "language": "GDScript",
 "path": "res://lib/noise_lib.gd"
 } ]
 _global_script_class_icons={
+"Landmass3D": "",
 "NoiseLib": ""
 }
 
 [application]
 
 config/name="Proc Landmass"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://EndlessTerrain.tscn"
 config/icon="res://icon.png"
 
 [input]

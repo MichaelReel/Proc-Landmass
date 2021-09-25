@@ -22,6 +22,7 @@ static func default_terrain_curve() -> Curve:
 	terrain_curve.add_point(Vector2(1.0, 1.0))
 	return terrain_curve
 
+export (int) var noise_seed : int = 3 setget set_seed
 export (float, EXP, 1.0, 2048.0) var noise_scale : float = 64.0 setget set_period
 export (int) var octaves : int = 4 setget set_octaves
 export (float, 0.0, 1.0, 0.05) var persistence : float = 0.5 setget set_persistence
@@ -43,6 +44,10 @@ export (Dictionary) var terrain_types : Dictionary = {
 
 
 func _ready():
+	update_terrain_mesh()
+
+func set_seed(value : int):
+	noise_seed = value
 	update_terrain_mesh()
 
 func set_period(value : float):
@@ -73,104 +78,24 @@ func set_terrain_multiplier(value : float):
 	terrain_multiplier = value
 	update_terrain_mesh()
 
-func update_terrain_mesh():	
-	var noise_map = NoiseLib.generate_noise_map(map_chunk_size, map_chunk_size, 3, noise_scale, octaves, persistence, lacunarity)
+func update_terrain_mesh():
+	var map_data = ChunkLib.generate_map_data(
+		map_chunk_size, 
+		map_chunk_size, 
+		noise_seed,
+		noise_scale, 
+		octaves, 
+		persistence, 
+		lacunarity,
+		terrain_types
+	)
 	var map_scale : Vector3 = Vector3(scale.x, scale.y * terrain_multiplier, scale.z)
-	mesh = generate_terrain_mesh(noise_map, map_scale, terrain_height_curve, level_of_detail)
-	
-	var noise_color_array : PoolByteArray = NoiseLib.generate_region_array(noise_map, terrain_types)
-	var noise_texture : Texture = NoiseLib.generate_texture(map_chunk_size, map_chunk_size, noise_color_array, "Terrain Albedo")
+	mesh = ChunkLib.generate_terrain_mesh(map_data.height_map, map_scale, terrain_height_curve, level_of_detail)
 	var spatial_material : Material = mesh.surface_get_material(0)
 	if not spatial_material is SpatialMaterial:
 		spatial_material = SpatialMaterial.new()
-	spatial_material.albedo_texture = noise_texture
-	
+	spatial_material.albedo_texture = map_data.texture_map
 	mesh.surface_set_material(0, spatial_material)
 
-class MeshData:
-	var vertices : PoolVector3Array
-	var uvs : PoolVector2Array
-	var normals : PoolVector3Array
-	var triangles : PoolIntArray
-	var triangle_index : int = 0
 
-	func _init(mesh_width : int, mesh_height : int):
-		vertices = PoolVector3Array()
-		uvs = PoolVector2Array()
-		normals = PoolVector3Array()
-		triangles = PoolIntArray()
-		vertices.resize(mesh_width * mesh_height)
-		uvs.resize(mesh_width * mesh_height)
-		normals.resize(mesh_width * mesh_height)
-		triangles.resize((mesh_width - 1) * (mesh_height - 1) * 6)
 
-	func add_quad(a : int, b : int, c : int, d : int):
-		# A-----B
-		# | \   |
-		# |   \ |
-		# C-----D
-
-		triangles[triangle_index] = a
-		triangles[triangle_index+1] = b
-		triangles[triangle_index+2] = d
-		triangles[triangle_index+3] = a
-		triangles[triangle_index+4] = d
-		triangles[triangle_index+5] = c
-		triangle_index += 6
-	
-	func create_mesh() -> Mesh:
-		var mesh := ArrayMesh.new()
-	
-		var arr = []
-		arr.resize(ArrayMesh.ARRAY_MAX)
-		# Assign arrays to mesh array.
-		arr[Mesh.ARRAY_VERTEX] = vertices
-		arr[Mesh.ARRAY_TEX_UV] = uvs
-		arr[Mesh.ARRAY_NORMAL] = normals
-		arr[Mesh.ARRAY_INDEX] = triangles
-
-		# Create mesh surface from mesh array.
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-		# Normals was an empty array
-		mesh.regen_normalmaps()
-		return mesh
-
-func generate_terrain_mesh(
-	noise_map : Array, 
-	mesh_scale : Vector3, 
-	mesh_height_curve : Curve, 
-	lod_exp : int
-) -> Mesh:
-	var width := len(noise_map[0])
-	var breadth := len(noise_map)
-	var start_x := (width - 1) / -2.0
-	var start_y := -0.5
-	var start_z := (breadth - 1) / -2.0
-	var mesh_lod_increment := int(pow(2, lod_exp))
-	#warning-ignore:integer_division
-	var verts_per_line = ((width - 1) / mesh_lod_increment) + 1
-	
-	var mesh_data = MeshData.new(verts_per_line, verts_per_line)
-	var vertex_index = 0
-	for z in range(0, breadth, mesh_lod_increment):
-		for x in range(0, width, mesh_lod_increment):
-			var y : float = mesh_height_curve.interpolate(noise_map[z][x])
-			mesh_data.vertices[vertex_index] = Vector3(
-				(start_x + x) * mesh_scale.x / width, 
-				(start_y + y) * mesh_scale.y,
-				(start_z + z) * mesh_scale.z / breadth
-			)
-			mesh_data.uvs[vertex_index] = Vector2(x / float(width), z / float(breadth))
-			
-			if x < width - 1 and z < breadth - 1:
-				mesh_data.add_quad(
-					vertex_index,
-					vertex_index + 1,
-					vertex_index + verts_per_line,
-					vertex_index + verts_per_line + 1
-				)
-			
-			vertex_index += 1
-			
-	return mesh_data.create_mesh()
-	

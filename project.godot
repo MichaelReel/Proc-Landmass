@@ -9,6 +9,11 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Reference",
+"class": "ChunkLib",
+"language": "GDScript",
+"path": "res://lib/chunk_lib.gd"
+}, {
 "base": "MeshInstance",
 "class": "Landmass3D",
 "language": "GDScript",
@@ -20,6 +25,7 @@ _global_script_classes=[ {
 "path": "res://lib/noise_lib.gd"
 } ]
 _global_script_class_icons={
+"ChunkLib": "",
 "Landmass3D": "",
 "NoiseLib": ""
 }

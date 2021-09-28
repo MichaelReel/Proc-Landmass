@@ -9,7 +9,9 @@ signal map_data_callback(chunk_key, chunk_data)
 
 func request_map_data(request_data : ChunkRequestData):
 	var data_thread = Thread.new()
+	request_data.handler_thread = data_thread
 	data_thread.start(self, "map_data_thread", request_data)
+	
 
 func map_data_thread(request_data : ChunkRequestData):
 	var land_chunk = Landmass3D.new()
@@ -24,6 +26,9 @@ func update():
 		var key : Vector2 = land_chunk_response.request.chunk_coord
 		var data : Landmass3D = land_chunk_response.response
 		emit_signal("map_data_callback", key, data)
+		var handler_thread = land_chunk_response.request.handler_thread
+		handler_thread.wait_to_finish()
+		
 		
 func dequeue() -> ChunkRequestData:
 	map_data_mutex.lock()
@@ -38,6 +43,7 @@ func enqueue(land_chunk_request: QueuedRequestData):
 
 class ChunkRequestData:
 	var chunk_coord : Vector2
+	var handler_thread : Thread
 	
 	func _init(coord : Vector2):
 		chunk_coord = coord

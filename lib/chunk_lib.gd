@@ -78,7 +78,7 @@ static func generate_map_data(
 		height, 
 		nseed,
 		period, 
-		octaves, 
+		octaves,
 		persistence, 
 		lacunarity
 	)

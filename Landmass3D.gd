@@ -45,45 +45,51 @@ export (float, 0.0, 2.0, 0.05) var terrain_multiplier : float = 1.0 setget set_t
 export (Curve) var terrain_height_curve : Curve = default_terrain_curve()
 export (Dictionary) var terrain_types : Dictionary = default_terrain_types() setget set_terrain_types
 
+var map_data : ChunkLib.MapData
+
 ## Tool functions
 func _ready():
+	editor_updates()
+
+func editor_updates():
 	if Engine.editor_hint:
+		update_terrain_data()
 		update_terrain_mesh()
 
 func set_seed(value : int):
 	noise_seed = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_period(value : float):
 	noise_scale = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_octaves(value : int):
 	octaves = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_persistence(value : float):
 	persistence = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_lacunarity(value : float):
 	lacunarity = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_terrain_types(value : Dictionary):
 	terrain_types = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_level_of_detail(value : int):
 	level_of_detail = value
-	update_terrain_mesh()
+	editor_updates()
 
 func set_terrain_multiplier(value : float):
 	terrain_multiplier = value
-	update_terrain_mesh()
+	editor_updates()
 
-func update_terrain_mesh():
-	var map_data = ChunkLib.generate_map_data(
+func update_terrain_data():
+	map_data = ChunkLib.generate_map_data(
 		map_chunk_size, 
 		map_chunk_size, 
 		noise_seed,
@@ -93,6 +99,8 @@ func update_terrain_mesh():
 		lacunarity,
 		terrain_types
 	)
+
+func update_terrain_mesh():
 	var map_scale : Vector3 = Vector3(scale.x, scale.y * terrain_multiplier, scale.z)
 	mesh = ChunkLib.generate_terrain_mesh(map_data.height_map, map_scale, terrain_height_curve, level_of_detail)
 	var spatial_material : Material = mesh.surface_get_material(0)
@@ -100,8 +108,6 @@ func update_terrain_mesh():
 		spatial_material = SpatialMaterial.new()
 	spatial_material.albedo_texture = map_data.texture_map
 	mesh.surface_set_material(0, spatial_material)
-
-## Non-tool instance functions
 
 func set_values(nseed : int, nscale : float, oct : int, per : float, lac : float, lod : int, mult : float, curve : Curve, ttypes : Dictionary):
 	noise_seed = nseed

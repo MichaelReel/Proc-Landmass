@@ -16,6 +16,7 @@ func request_map_data(request_data : ChunkRequestData):
 func map_data_thread(request_data : ChunkRequestData):
 	var land_chunk = Landmass3D.new()
 	# TODO: Probably need to set values here
+	land_chunk.update_terrain_data()
 	land_chunk.update_terrain_mesh()
 	enqueue(QueuedRequestData.new(request_data, land_chunk))
 

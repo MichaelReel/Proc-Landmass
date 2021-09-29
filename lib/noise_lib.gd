@@ -76,3 +76,7 @@ static func generate_texture(width : int, height : int, noise_color_array : Pool
 	noise_texture.resource_name = texture_name
 	noise_texture.set_flags(noise_texture.get_flags() & ~Texture.FLAG_FILTER)
 	return noise_texture
+
+
+class ChunkRequest:
+	var handler_thread : Thread

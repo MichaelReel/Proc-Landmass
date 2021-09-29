@@ -17,7 +17,8 @@ var debug_tick = 0.0
 func _ready():
 	chunk_size = Landmass3D.map_chunk_size - 1
 	chunks_visible_in_view = int(round(max_view_distance / chunk_size))
-	var _err = map_generator.connect("map_data_callback", self, "_on_map_data_callback")
+	var _err1 = map_generator.connect("map_data_callback", self, "_on_map_data_callback")
+	var _err2 = map_generator.connect("map_mesh_callback", self, "_on_map_mesh_callback")
 
 func _process(delta):
 	viewer_position = Vector2(camera_control.translation.x, camera_control.translation.z)
@@ -58,7 +59,11 @@ func update_visible_chunks():
 
 func _on_map_data_callback(chunk_coord : Vector2, chunk_data : Landmass3D):
 	if terrain_chunk_dict.has(chunk_coord):
-		terrain_chunk_dict[chunk_coord].on_map_data_received(chunk_data)
+		terrain_chunk_dict[chunk_coord].on_map_data_received(chunk_data, map_generator)
+
+func _on_map_mesh_callback(chunk_coord : Vector2, chunk_data : Landmass3D):
+	if terrain_chunk_dict.has(chunk_coord):
+		terrain_chunk_dict[chunk_coord].on_map_mesh_received(chunk_data)
 
 
 class TerrainChunk:
@@ -67,10 +72,12 @@ class TerrainChunk:
 	var position_2d : Vector2
 	var mesh_object : MeshInstance
 	var bounds : Rect2
+	var chunk_coords : Vector2
 	
-	func _init(coord: Vector2, size: int, map_generator : MapGenerator):
-		self.set_name("terrain(" + str(coord.x) + "," + str(coord.y) + ")")
-		position_2d = coord * size
+	func _init(coords : Vector2, size: int, map_generator : MapGenerator):
+		self.chunk_coords = coords
+		self.set_name("terrain(" + str(coords.x) + "," + str(coords.y) + ")")
+		position_2d = coords * size
 		self.translation = Vector3(position_2d.x, 0.0, position_2d.y)
 		bounds = Rect2(position_2d, Vector2.ONE * size).abs()
 #		print("bounds created: " + str(bounds))
@@ -81,12 +88,25 @@ class TerrainChunk:
 		self.set_visible(false)
 		add_child(mesh_object)
 		
-		var request = MapGenerator.ChunkRequestData.new(coord)
-		map_generator.request_map_data(request)
+		var request = MapGenerator.ChunkRequestData.new(self.chunk_coords)
+		map_generator.request_map(request)
 	
 	func update_terrain_chunk(viewer_position : Vector2, max_view_distance: float):
 		var viewer_distance_nearest_edge : float = ChunkLib.distance(bounds, viewer_position)
 		self.set_visible(viewer_distance_nearest_edge <= max_view_distance)
 	
-	func on_map_data_received(_landmass : Landmass3D):
+	func on_map_data_received(landmass : Landmass3D, map_generator : MapGenerator):
 		print(self.name + " : map data received")
+		remove_child(mesh_object)
+		mesh_object = landmass
+		add_child(mesh_object)
+		
+		var request = MapGenerator.ChunkRequestMesh.new(self.chunk_coords, landmass)
+		map_generator.request_map(request)
+		
+	
+	func on_map_mesh_received(landmass : Landmass3D):
+		print(self.name + " : map mesh received")
+		remove_child(mesh_object)
+		mesh_object = landmass
+		add_child(mesh_object)

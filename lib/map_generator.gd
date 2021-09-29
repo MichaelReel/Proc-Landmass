@@ -14,13 +14,10 @@ func request_map(request_data : NoiseLib.ChunkRequest):
 	data_thread.start(self, "map_thread", request_data)
 
 func map_thread(request_data : NoiseLib.ChunkRequest):
-	var land_chunk : Landmass3D
-	
+	var land_chunk := request_data.land_chunk
 	if request_data is ChunkRequestData:
-		land_chunk = Landmass3D.new()
 		land_chunk.update_terrain_data()
 	elif request_data is ChunkRequestMesh:
-		land_chunk = (request_data as ChunkRequestMesh).land_chunk
 		land_chunk.update_terrain_mesh()
 	else:
 		print("Unrecognised Chunk Request: " + str(request_data))
@@ -52,19 +49,13 @@ func enqueue(land_chunk_request: QueuedRequest):
 
 class ChunkRequestData:
 	extends NoiseLib.ChunkRequest
-	var chunk_coord : Vector2
-	
-	func _init(coord : Vector2):
-		chunk_coord = coord
+	func _init(coord, chunk).(coord, chunk):
+		pass
 
 class ChunkRequestMesh:
 	extends NoiseLib.ChunkRequest
-	var chunk_coord : Vector2
-	var land_chunk : Landmass3D
-	
-	func _init(coord : Vector2, chunk : Landmass3D):
-		chunk_coord = coord
-		land_chunk = chunk
+	func _init(coord, chunk).(coord, chunk):
+		pass
 
 class QueuedRequest:
 	var request : NoiseLib.ChunkRequest

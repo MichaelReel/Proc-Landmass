@@ -2,6 +2,9 @@ extends Spatial
 
 export (float) var max_view_distance : float = 128
 
+
+
+
 onready var camera_control = get_node("../CameraControl")
 onready var viewer_position : Vector2 = Vector2(camera_control.translation.x, camera_control.translation.z)
 onready var map_generator : MapGenerator = MapGenerator.new()
@@ -15,7 +18,7 @@ const DEBUG_RATE = 2.0
 var debug_tick = 0.0
 
 func _ready():
-	chunk_size = Landmass3D.map_chunk_size - 1
+	chunk_size = NoiseLib.Defaults.map_chunk_size - 1
 	chunks_visible_in_view = int(round(max_view_distance / chunk_size))
 	var _err1 = map_generator.connect("map_data_callback", self, "_on_map_data_callback")
 	var _err2 = map_generator.connect("map_mesh_callback", self, "_on_map_mesh_callback")
@@ -80,15 +83,29 @@ class TerrainChunk:
 		position_2d = coords * size
 		self.translation = Vector3(position_2d.x, 0.0, position_2d.y)
 		bounds = Rect2(position_2d, Vector2.ONE * size).abs()
-#		print("bounds created: " + str(bounds))
 		
+		# Create a placeholder mesh, we'll replace this when the real mesh is ready
 		mesh_object = MeshInstance.new()
 		mesh_object.mesh = PlaneMesh.new()
 		mesh_object.scale = Vector3.ONE * size
 		self.set_visible(false)
 		add_child(mesh_object)
 		
-		var request = MapGenerator.ChunkRequestData.new(self.chunk_coords)
+		var chunk = Landmass3D.new()
+		chunk.set_values(
+			NoiseLib.Defaults.zeed,
+			NoiseLib.Defaults.period,
+			NoiseLib.Defaults.octaves,
+			NoiseLib.Defaults.persistence,
+			NoiseLib.Defaults.lacunarity,
+			NoiseLib.Defaults.level_of_detail,
+			NoiseLib.Defaults.terrain_multiplier,
+			NoiseLib.Defaults.default_terrain_curve(),
+			NoiseLib.Defaults.default_terrain_types()
+		)
+		chunk.scale = Vector3.ONE * (size + 1)
+		
+		var request = MapGenerator.ChunkRequestData.new(self.chunk_coords, chunk)
 		map_generator.request_map(request)
 	
 	func update_terrain_chunk(viewer_position : Vector2, max_view_distance: float):

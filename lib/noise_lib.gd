@@ -80,3 +80,50 @@ static func generate_texture(width : int, height : int, noise_color_array : Pool
 
 class ChunkRequest:
 	var handler_thread : Thread
+	var chunk_coord : Vector2
+	var land_chunk : MeshInstance
+	
+	func _init(coord : Vector2, chunk : MeshInstance):
+		chunk_coord = coord
+		land_chunk = chunk
+
+
+class Defaults:
+	const map_chunk_size : int = 65
+	const zeed : int = 3
+	const period : float = float(map_chunk_size - 1)
+	const octaves : int = 4
+	const persistence : float = 0.5
+	const lacunarity : float = 2.0
+	const level_of_detail : int = 0
+	const terrain_multiplier : float = 10.0 / float(map_chunk_size - 1)
+	const regions = {
+		"Water Deep": Color(0.0, 0.25, 1.0),
+		"Water Shallow": Color(0.0, 0.5, 1.0),
+		"Sand": Color(0.94, 0.9, 0.55),
+		"Grass 1": Color(0.16, 0.66, 0.16),
+		"Grass 2": Color(0.08, 0.42, 0.08),
+		"Rock 1": Color(0.37, 0.24, 0.11),
+		"Rock 2": Color(0.3, 0.2, 0.1),
+		"Snow": Color(0.9, 0.9, 0.9),
+	}
+
+	static func default_terrain_curve() -> Curve:
+		var terrain_curve = Curve.new()
+		terrain_curve.add_point(Vector2(0.0, 0.0))
+		terrain_curve.add_point(Vector2(0.4, 0.0))
+		terrain_curve.add_point(Vector2(1.0, 1.0))
+		return terrain_curve
+
+	static func default_terrain_types() -> Dictionary:
+		var types : Dictionary = {
+			0.3: regions["Water Deep"],
+			0.4: regions["Water Shallow"],
+			0.45: regions["Sand"],
+			0.55: regions["Grass 1"],
+			0.6: regions["Grass 2"],
+			0.7: regions["Rock 1"],
+			0.9: regions["Rock 2"],
+			1.0: regions["Snow"],
+		}
+		return types

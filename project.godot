@@ -14,7 +14,7 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://lib/chunk_lib.gd"
 }, {
-"base": "MeshInstance",
+"base": "Spatial",
 "class": "Landmass3D",
 "language": "GDScript",
 "path": "res://Landmass3D.gd"

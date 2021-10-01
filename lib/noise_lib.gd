@@ -2,7 +2,6 @@ extends Object
 
 class_name NoiseLib
 
-
 static func generate_noise_map(
 	width: int, 
 	height: int, 
@@ -76,16 +75,6 @@ static func generate_texture(width : int, height : int, noise_color_array : Pool
 	noise_texture.resource_name = texture_name
 	noise_texture.set_flags(noise_texture.get_flags() & ~Texture.FLAG_FILTER)
 	return noise_texture
-
-
-class ChunkRequest:
-	var handler_thread : Thread
-	var chunk_coord : Vector2
-	var land_chunk : MeshInstance
-	
-	func _init(coord : Vector2, chunk : MeshInstance):
-		chunk_coord = coord
-		land_chunk = chunk
 
 
 class Defaults:

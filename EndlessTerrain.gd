@@ -2,9 +2,6 @@ extends Spatial
 
 export (float) var max_view_distance : float = 128
 
-
-
-
 onready var camera_control = get_node("../CameraControl")
 onready var viewer_position : Vector2 = Vector2(camera_control.translation.x, camera_control.translation.z)
 onready var map_generator : MapGenerator = MapGenerator.new()
@@ -73,7 +70,7 @@ class TerrainChunk:
 	extends Spatial
 	
 	var position_2d : Vector2
-	var mesh_object : MeshInstance
+	var mesh_object : Spatial
 	var bounds : Rect2
 	var chunk_coords : Vector2
 	
@@ -114,16 +111,13 @@ class TerrainChunk:
 	
 	func on_map_data_received(landmass : Landmass3D, map_generator : MapGenerator):
 		print(self.name + " : map data received")
-		remove_child(mesh_object)
-		mesh_object = landmass
-		add_child(mesh_object)
 		
 		var request = MapGenerator.ChunkRequestMesh.new(self.chunk_coords, landmass)
 		map_generator.request_map(request)
-		
 	
 	func on_map_mesh_received(landmass : Landmass3D):
 		print(self.name + " : map mesh received")
 		remove_child(mesh_object)
 		mesh_object = landmass
 		add_child(mesh_object)
+		mesh_object.set_level_of_detail(0)

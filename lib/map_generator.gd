@@ -8,17 +8,17 @@ var map_data_mutex = Mutex.new()
 signal map_data_callback(chunk_key, chunk_data)
 signal map_mesh_callback(chunk_key, chunk_data)
 
-func request_map(request_data : NoiseLib.ChunkRequest):
+func request_map(request_data : Landmass3D.ChunkRequest):
 	var data_thread = Thread.new()
 	request_data.handler_thread = data_thread
 	data_thread.start(self, "map_thread", request_data)
 
-func map_thread(request_data : NoiseLib.ChunkRequest):
-	var land_chunk := request_data.land_chunk
+func map_thread(request_data : Landmass3D.ChunkRequest):
+	var land_chunk : Landmass3D = request_data.land_chunk
 	if request_data is ChunkRequestData:
 		land_chunk.update_terrain_data()
 	elif request_data is ChunkRequestMesh:
-		land_chunk.update_terrain_mesh()
+		land_chunk.update_terrain_mesh(0)
 	else:
 		print("Unrecognised Chunk Request: " + str(request_data))
 		
@@ -36,7 +36,7 @@ func update():
 		var handler_thread = land_chunk_response.request.handler_thread
 		handler_thread.wait_to_finish()
 
-func dequeue() -> NoiseLib.ChunkRequest:
+func dequeue() -> Landmass3D.ChunkRequest:
 	map_data_mutex.lock()
 	var land_chunk_request = map_data_queue.pop_front()
 	map_data_mutex.unlock()
@@ -48,19 +48,19 @@ func enqueue(land_chunk_request: QueuedRequest):
 	map_data_mutex.unlock()
 
 class ChunkRequestData:
-	extends NoiseLib.ChunkRequest
+	extends Landmass3D.ChunkRequest
 	func _init(coord, chunk).(coord, chunk):
 		pass
 
 class ChunkRequestMesh:
-	extends NoiseLib.ChunkRequest
+	extends Landmass3D.ChunkRequest
 	func _init(coord, chunk).(coord, chunk):
 		pass
 
 class QueuedRequest:
-	var request : NoiseLib.ChunkRequest
-	var response : Landmass3D
+	var request : Landmass3D.ChunkRequest
+	var response : Spatial
 
-	func _init(req : NoiseLib.ChunkRequest, res : Landmass3D):
+	func _init(req : Landmass3D.ChunkRequest, res : Landmass3D):
 		request = req
 		response = res

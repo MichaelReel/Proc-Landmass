@@ -1,7 +1,9 @@
 tool
-extends MeshInstance
+extends Spatial
 
 class_name Landmass3D
+
+const lod_levels := 6
 
 export (int) var noise_seed : int = NoiseLib.Defaults.zeed setget set_seed
 export (float, EXP, 1.0, 2048.0) var period : float = NoiseLib.Defaults.period setget set_period
@@ -14,6 +16,15 @@ export (Curve) var terrain_height_curve : Curve = NoiseLib.Defaults.default_terr
 export (Dictionary) var terrain_types : Dictionary = NoiseLib.Defaults.default_terrain_types() setget set_terrain_types
 
 var map_data : ChunkLib.MapData
+var lod_meshes : Array = []
+
+func _init():
+	# min and max LODs must be literals in export above (fix in 4.0 maybe)
+	lod_meshes.resize(lod_levels)
+	for lod in range(lod_levels):
+		lod_meshes[lod] = LODMesh.new(lod)
+		lod_meshes[lod].set_visible(false)
+		add_child(lod_meshes[lod])
 
 ## Tool functions
 func _ready():
@@ -22,7 +33,10 @@ func _ready():
 func editor_updates():
 	if Engine.editor_hint:
 		update_terrain_data()
-		update_terrain_mesh()
+		for lod in range(lod_levels):
+			lod_meshes[lod].set_visible(false)
+			update_terrain_mesh(lod)
+		lod_meshes[level_of_detail].set_visible(true)
 
 func set_seed(value : int):
 	noise_seed = value
@@ -49,7 +63,9 @@ func set_terrain_types(value : Dictionary):
 	editor_updates()
 
 func set_level_of_detail(value : int):
+	lod_meshes[level_of_detail].set_visible(false)
 	level_of_detail = value
+	lod_meshes[level_of_detail].set_visible(true)
 	editor_updates()
 
 func set_terrain_multiplier(value : float):
@@ -68,20 +84,18 @@ func update_terrain_data():
 		terrain_types
 	)
 
-func update_terrain_mesh():
-	var map_scale : Vector3 = Vector3(1.0, terrain_multiplier, 1.0)
-	mesh = ChunkLib.generate_terrain_mesh(map_data.height_map, map_scale, terrain_height_curve, level_of_detail)
-	var spatial_material : Material = mesh.surface_get_material(0)
-	if not spatial_material is SpatialMaterial:
-		spatial_material = SpatialMaterial.new()
-	spatial_material.albedo_texture = map_data.texture_map
-	mesh.surface_set_material(0, spatial_material)
+func update_terrain_mesh(lod : int):
+	lod_meshes[lod].update_terrain_mesh(
+		map_data,
+		terrain_multiplier,
+		terrain_height_curve
+	)
 
-func set_values(nseed : int, period : float, oct : int, per : float, lac : float, lod : int, mult : float, curve : Curve, ttypes : Dictionary):
+func set_values(nseed : int, period_ : float, oct : int, persistence_ : float, lac : float, lod : int, mult : float, curve : Curve, ttypes : Dictionary):
 	noise_seed = nseed
-	period = period
+	period = period_
 	octaves = oct
-	persistence = per
+	persistence = persistence_
 	lacunarity = lac
 	level_of_detail = lod
 	terrain_multiplier = mult
@@ -89,3 +103,38 @@ func set_values(nseed : int, period : float, oct : int, per : float, lac : float
 	terrain_types = ttypes
 
 
+class LODMesh:
+	extends MeshInstance
+
+	var lod : int
+	
+	func _init(level_of_detail : int):
+		lod = level_of_detail
+	
+	func update_terrain_mesh(
+		map_data: ChunkLib.MapData, 
+		terrain_multiplier : float,
+		terrain_height_curve : Curve
+	):
+		var map_scale : Vector3 = Vector3(1.0, terrain_multiplier, 1.0)
+		mesh = ChunkLib.generate_terrain_mesh(
+			map_data.height_map,
+			map_scale,
+			terrain_height_curve,
+			lod
+		)
+		var spatial_material : Material = mesh.surface_get_material(0)
+		if not spatial_material is SpatialMaterial:
+			spatial_material = SpatialMaterial.new()
+		spatial_material.albedo_texture = map_data.texture_map
+		mesh.surface_set_material(0, spatial_material)
+
+
+class ChunkRequest:
+	var handler_thread : Thread
+	var chunk_coord : Vector2
+	var land_chunk : Spatial
+	
+	func _init(coord : Vector2, chunk : Spatial):
+		chunk_coord = coord
+		land_chunk = chunk

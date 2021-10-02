@@ -1,16 +1,20 @@
 extends Spatial
 
 export (Array) var lod_distances = NoiseLib.Defaults.default_lod_distances()
+export (float) var viewer_move_threshold_for_chunk_update : float = 8.0
 
 onready var max_view_distance : float = lod_distances[-1]
 onready var camera_control = get_node("../CameraControl")
 onready var viewer_position : Vector2 = Vector2(camera_control.translation.x, camera_control.translation.z)
 onready var map_generator : MapGenerator = MapGenerator.new()
+onready var sqr_viewer_move_threshold : float = pow(viewer_move_threshold_for_chunk_update, 2.0)
 
 var chunk_size : int
 var chunks_visible_in_view : int
 var terrain_chunk_dict : Dictionary = {}
 var terrain_chunks_last_visible : Array = []
+var primary_loading_complete : bool = false
+var viewer_position_old : Vector2
 
 const DEBUG_RATE = 2.0
 var debug_tick = 0.0
@@ -23,14 +27,18 @@ func _ready():
 
 func _process(delta):
 	viewer_position = Vector2(camera_control.translation.x, camera_control.translation.z)
-	update_visible_chunks()
+	if not primary_loading_complete or (
+		viewer_position.distance_squared_to(viewer_position_old) > sqr_viewer_move_threshold
+	):
+		if update_visible_chunks():
+			primary_loading_complete = true
+		viewer_position_old = viewer_position
 	map_generator.update()
 	debug_tick -= delta
 	if debug_tick <= 0.0:
-#		print(str(len(terrain_chunk_dict)))
 		debug_tick += DEBUG_RATE
 
-func update_visible_chunks():
+func update_visible_chunks() -> bool:
 	
 	for chunk in terrain_chunks_last_visible:
 		chunk.set_visible(false)
@@ -39,6 +47,7 @@ func update_visible_chunks():
 	var current_chunk_coord_x := int(round(camera_control.translation.x / chunk_size))
 	var current_chunk_coord_y := int(round(camera_control.translation.z / chunk_size))
 	
+	var inrange_chunks_requested = true
 	for y_offset in range(-chunks_visible_in_view, chunks_visible_in_view + 1):
 		for x_offset in range(-chunks_visible_in_view, chunks_visible_in_view + 1):
 			var viewed_chunk_coord := Vector2(
@@ -58,6 +67,11 @@ func update_visible_chunks():
 					map_generator
 				)
 				add_child(terrain_chunk_dict[viewed_chunk_coord])
+			
+			if not terrain_chunk_dict[viewed_chunk_coord].map_data_received:
+				inrange_chunks_requested = false
+	
+	return inrange_chunks_requested
 
 func _on_map_data_callback(chunk_coord : Vector2, _chunk_data : Landmass3D):
 	if terrain_chunk_dict.has(chunk_coord):
@@ -89,16 +103,10 @@ class TerrainChunk:
 		set_visible(false)
 		map_data_received = false
 		
-		# Create a debug mesh, we'll comment/delete this when not needed
-#		var debug_object = MeshInstance.new()
-#		debug_object.mesh = PlaneMesh.new()
-#		debug_object.scale = Vector3.ONE * size
-#		debug_object.translate(Vector3(0.0, -1.0, 0.0))
-#		add_child(debug_object)
-		
 		mesh_object = Landmass3D.new()
 		mesh_object.set_values(
 			NoiseLib.Defaults.zeed,
+			position_2d,
 			NoiseLib.Defaults.period,
 			NoiseLib.Defaults.octaves,
 			NoiseLib.Defaults.persistence,

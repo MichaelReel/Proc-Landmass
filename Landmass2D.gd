@@ -14,6 +14,8 @@ const regions = {
 
 enum DRAW_MODE { NoiseMap, ColorMap }
 
+export (int) var noise_seed : int = NoiseLib.Defaults.zeed setget set_seed
+export (Vector2) var noise_position : Vector2 = Vector2.ZERO setget set_noise_position
 export(DRAW_MODE) var draw_mode = DRAW_MODE.NoiseMap setget set_draw_mode
 export (float, 1.0, 2048.0) var noise_scale : float = 64.0 setget set_period
 export (int) var octaves : int = 4 setget set_octaves
@@ -32,6 +34,14 @@ export (Dictionary) var terrain_types : Dictionary = {
 
 
 func _ready():
+	update_texture_rect()
+
+func set_seed(value : int):
+	noise_seed = value
+	update_texture_rect()
+
+func set_noise_position(value : Vector2):
+	noise_position = value
 	update_texture_rect()
 
 func set_draw_mode(value):
@@ -62,7 +72,7 @@ func update_texture_rect():
 	var width : int = rect_size.x
 	var height : int = rect_size.y
 
-	var noise_map = NoiseLib.generate_noise_map(width, height, 3, noise_scale, octaves, persistence, lacunarity)
+	var noise_map = NoiseLib.generate_noise_map(width, height, noise_seed, noise_position, noise_scale, octaves, persistence, lacunarity)
 	var noise_color_array : PoolByteArray
 	match draw_mode:
 		DRAW_MODE.NoiseMap:

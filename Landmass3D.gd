@@ -6,6 +6,7 @@ class_name Landmass3D
 const lod_levels := 6
 
 export (int) var noise_seed : int = NoiseLib.Defaults.zeed setget set_seed
+export (Vector2) var noise_position : Vector2 = Vector2.ZERO setget set_noise_position
 export (float, EXP, 1.0, 2048.0) var period : float = NoiseLib.Defaults.period setget set_period
 export (int) var octaves : int = NoiseLib.Defaults.octaves setget set_octaves
 export (float, 0.0, 1.0, 0.05) var persistence : float = NoiseLib.Defaults.persistence setget set_persistence
@@ -42,6 +43,10 @@ func set_seed(value : int):
 	noise_seed = value
 	editor_updates()
 
+func set_noise_position(value : Vector2):
+	noise_position = value
+	editor_updates()
+
 func set_period(value : float):
 	period = value
 	editor_updates()
@@ -65,8 +70,8 @@ func set_terrain_types(value : Dictionary):
 func set_level_of_detail(value : int):
 	lod_meshes[level_of_detail].set_visible(false)
 	level_of_detail = value
-	lod_meshes[level_of_detail].set_visible(true)
 	editor_updates()
+	lod_meshes[level_of_detail].set_visible(true)
 
 func set_terrain_multiplier(value : float):
 	terrain_multiplier = value
@@ -77,6 +82,7 @@ func update_terrain_data():
 		NoiseLib.Defaults.map_chunk_size, 
 		NoiseLib.Defaults.map_chunk_size, 
 		noise_seed,
+		noise_position,
 		period, 
 		octaves, 
 		persistence, 
@@ -91,8 +97,9 @@ func update_terrain_mesh(lod : int):
 		terrain_height_curve
 	)
 
-func set_values(nseed : int, period_ : float, oct : int, persistence_ : float, lac : float, lod : int, mult : float, curve : Curve, ttypes : Dictionary):
+func set_values(nseed : int, npos: Vector2, period_ : float, oct : int, persistence_ : float, lac : float, lod : int, mult : float, curve : Curve, ttypes : Dictionary):
 	noise_seed = nseed
+	noise_position = npos
 	period = period_
 	octaves = oct
 	persistence = persistence_

@@ -13,6 +13,8 @@ data = {
 
 [sub_resource type="ImageTexture" id=2]
 resource_name = "Land Mass"
+flags = 3
+flags = 3
 image = SubResource( 3 )
 size = Vector2( 256, 150 )
 

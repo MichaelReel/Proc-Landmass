@@ -66,7 +66,8 @@ class MeshData:
 static func generate_map_data(
 	width: int, 
 	height: int, 
-	nseed: int, 
+	nseed: int,
+	npos: Vector2,
 	period: float, 
 	octaves: int, 
 	persistence: float, 
@@ -77,6 +78,7 @@ static func generate_map_data(
 		width, 
 		height, 
 		nseed,
+		npos,
 		period, 
 		octaves,
 		persistence, 

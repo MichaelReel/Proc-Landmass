@@ -5,7 +5,8 @@ class_name NoiseLib
 static func generate_noise_map(
 	width: int, 
 	height: int, 
-	nseed: int, 
+	nseed: int,
+	npos: Vector2,
 	period: float, 
 	octaves: int, 
 	persistence: float, 
@@ -29,7 +30,7 @@ static func generate_noise_map(
 		noise_map.append([])
 		noise_map[y].resize(width)
 		for x in range(width):
-			var base_noise := noise_base.get_noise_2d(x, y)
+			var base_noise := noise_base.get_noise_2d(x + npos.x, y + npos.y)
 			noise_map[y][x] = base_noise
 			min_noise_height = min(min_noise_height, base_noise)
 			max_noise_height = max(max_noise_height, base_noise)

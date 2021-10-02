@@ -102,20 +102,32 @@ func set_values(nseed : int, period_ : float, oct : int, persistence_ : float, l
 	terrain_height_curve = curve
 	terrain_types = ttypes
 
+func has_lod_requested(lod : int):
+	return lod_meshes[lod].mesh_requested
+
+func has_lod_available(lod : int):
+	return lod_meshes[lod].has_mesh
 
 class LODMesh:
 	extends MeshInstance
 
 	var lod : int
+	var mesh_requested : bool
+	var has_mesh : bool
 	
 	func _init(level_of_detail : int):
 		lod = level_of_detail
+		mesh_requested = false
+		has_mesh = false
 	
 	func update_terrain_mesh(
 		map_data: ChunkLib.MapData, 
 		terrain_multiplier : float,
 		terrain_height_curve : Curve
 	):
+		if mesh_requested:
+			return
+		mesh_requested = true
 		var map_scale : Vector3 = Vector3(1.0, terrain_multiplier, 1.0)
 		mesh = ChunkLib.generate_terrain_mesh(
 			map_data.height_map,
@@ -128,6 +140,7 @@ class LODMesh:
 			spatial_material = SpatialMaterial.new()
 		spatial_material.albedo_texture = map_data.texture_map
 		mesh.surface_set_material(0, spatial_material)
+		has_mesh = true
 
 
 class ChunkRequest:

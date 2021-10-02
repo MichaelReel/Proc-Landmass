@@ -6,7 +6,7 @@ var map_data_queue = []
 var map_data_mutex = Mutex.new()
 
 signal map_data_callback(chunk_key, chunk_data)
-signal map_mesh_callback(chunk_key, chunk_data)
+signal map_mesh_callback(chunk_key, chunk_data, lod)
 
 func request_map(request_data : Landmass3D.ChunkRequest):
 	var data_thread = Thread.new()
@@ -18,7 +18,7 @@ func map_thread(request_data : Landmass3D.ChunkRequest):
 	if request_data is ChunkRequestData:
 		land_chunk.update_terrain_data()
 	elif request_data is ChunkRequestMesh:
-		land_chunk.update_terrain_mesh(0)
+		land_chunk.update_terrain_mesh(request_data.lod)
 	else:
 		print("Unrecognised Chunk Request: " + str(request_data))
 		
@@ -32,7 +32,7 @@ func update():
 		if land_chunk_response.request is ChunkRequestData:
 			emit_signal("map_data_callback", key, data)
 		elif land_chunk_response.request is ChunkRequestMesh:
-			emit_signal("map_mesh_callback", key, data)
+			emit_signal("map_mesh_callback", key, data, land_chunk_response.request.lod)
 		var handler_thread = land_chunk_response.request.handler_thread
 		handler_thread.wait_to_finish()
 
@@ -54,8 +54,9 @@ class ChunkRequestData:
 
 class ChunkRequestMesh:
 	extends Landmass3D.ChunkRequest
-	func _init(coord, chunk).(coord, chunk):
-		pass
+	var lod : int
+	func _init(coord, chunk, level_of_detail).(coord, chunk):
+		lod = level_of_detail
 
 class QueuedRequest:
 	var request : Landmass3D.ChunkRequest

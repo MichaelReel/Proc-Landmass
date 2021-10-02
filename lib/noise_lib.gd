@@ -116,3 +116,8 @@ class Defaults:
 			1.0: regions["Snow"],
 		}
 		return types
+
+	static func default_lod_distances() -> Array:
+		var levels : Array = [0, 64, 128, 192, 256, 320]
+		return levels
+

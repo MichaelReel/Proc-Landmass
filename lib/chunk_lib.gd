@@ -82,7 +82,8 @@ static func generate_map_data(
 		period, 
 		octaves,
 		persistence, 
-		lacunarity
+		lacunarity,
+		NoiseLib.NormalizeMode.LOCAL if Engine.editor_hint else NoiseLib.NormalizeMode.GLOBAL
 	)
 	var noise_color_array := NoiseLib.generate_region_array(
 		noise_map, 

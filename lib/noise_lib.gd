@@ -2,6 +2,8 @@ extends Object
 
 class_name NoiseLib
 
+enum NormalizeMode {LOCAL, GLOBAL}
+
 static func generate_noise_map(
 	width: int, 
 	height: int, 
@@ -10,7 +12,8 @@ static func generate_noise_map(
 	period: float, 
 	octaves: int, 
 	persistence: float, 
-	lacunarity: float
+	lacunarity: float,
+	normalize_mode: int
 ) -> Array:
 	var noise_base : OpenSimplexNoise = OpenSimplexNoise.new()
 
@@ -21,9 +24,12 @@ static func generate_noise_map(
 	noise_base.set_persistence(persistence)
 	noise_base.set_lacunarity(lacunarity)
 	
-	# Creating bugs for when we do chunks
-	var min_noise_height = 1.0
-	var max_noise_height = -1.0
+	# These are estimates
+	var min_possible_global_height : float = -0.71
+	var max_possible_global_height : float = 0.75
+	# These will be adjusted
+	var min_local_noise_height : float = 1.0
+	var max_local_noise_height : float = -1.0
 	
 	var noise_map : Array = []
 	for y in range(height):
@@ -32,12 +38,18 @@ static func generate_noise_map(
 		for x in range(width):
 			var base_noise := noise_base.get_noise_2d(x + npos.x, y + npos.y)
 			noise_map[y][x] = base_noise
-			min_noise_height = min(min_noise_height, base_noise)
-			max_noise_height = max(max_noise_height, base_noise)
+			min_local_noise_height = min(min_local_noise_height, base_noise)
+			max_local_noise_height = max(max_local_noise_height, base_noise)
+	
+	var min_height : float = min_local_noise_height
+	var max_height : float = max_local_noise_height
+	if normalize_mode == NormalizeMode.GLOBAL:
+		min_height = min_possible_global_height
+		max_height = max_possible_global_height
 	
 	for y in range(0, height):
 		for x in range(0, width):
-			noise_map[y][x] = inverse_lerp(min_noise_height, max_noise_height, noise_map[y][x])
+			noise_map[y][x] = inverse_lerp(min_height, max_height, noise_map[y][x])
 	return noise_map
 
 

@@ -72,7 +72,7 @@ func update_texture_rect():
 	var width : int = rect_size.x
 	var height : int = rect_size.y
 
-	var noise_map = NoiseLib.generate_noise_map(width, height, noise_seed, noise_position, noise_scale, octaves, persistence, lacunarity)
+	var noise_map = NoiseLib.generate_noise_map(width, height, noise_seed, noise_position, noise_scale, octaves, persistence, lacunarity, NoiseLib.NormalizeMode.LOCAL)
 	var noise_color_array : PoolByteArray
 	match draw_mode:
 		DRAW_MODE.NoiseMap:

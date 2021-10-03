@@ -102,7 +102,7 @@ class Defaults:
 	const persistence : float = 0.55
 	const lacunarity : float = 2.5
 	const level_of_detail : int = 0
-	const terrain_multiplier : float = 10.0 / float(map_chunk_size - 1)
+	const terrain_multiplier : float = 1.0
 	const regions = {
 		"Water Deep": Color(0.0, 0.25, 1.0),
 		"Water Shallow": Color(0.0, 0.5, 1.0),
@@ -123,18 +123,18 @@ class Defaults:
 
 	static func default_terrain_types() -> Dictionary:
 		var types : Dictionary = {
-			0.3: regions["Water Deep"],
-			0.4: regions["Water Shallow"],
-			0.45: regions["Sand"],
-			0.55: regions["Grass 1"],
-			0.6: regions["Grass 2"],
-			0.7: regions["Rock 1"],
-			0.9: regions["Rock 2"],
-			1.0: regions["Snow"],
+			0.2: regions["Water Deep"],
+			0.3: regions["Water Shallow"],
+			0.35: regions["Sand"],
+			0.45: regions["Grass 1"],
+			0.5: regions["Grass 2"],
+			0.6: regions["Rock 1"],
+			0.8: regions["Rock 2"],
+			0.9: regions["Snow"],
 		}
 		return types
 
 	static func default_lod_distances() -> Array:
-		var levels : Array = [0, 64, 128, 192, 256, 320]
+		var levels : Array = [0, 128, 192, 256, 320, 640]
 		return levels
 

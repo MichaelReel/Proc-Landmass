@@ -13,7 +13,8 @@ static func generate_noise_map(
 	octaves: int, 
 	persistence: float, 
 	lacunarity: float,
-	normalize_mode: int
+	normalize_mode: int,
+	falloff_map = null
 ) -> Array:
 	var noise_base : OpenSimplexNoise = OpenSimplexNoise.new()
 
@@ -37,6 +38,9 @@ static func generate_noise_map(
 		noise_map[y].resize(width)
 		for x in range(width):
 			var base_noise := noise_base.get_noise_2d(x + npos.x, y + npos.y)
+			if falloff_map != null:
+				base_noise -= falloff_map[y][x]
+				base_noise = clamp(base_noise, -1.0, 1.0)
 			noise_map[y][x] = base_noise
 			min_local_noise_height = min(min_local_noise_height, base_noise)
 			max_local_noise_height = max(max_local_noise_height, base_noise)
@@ -95,8 +99,8 @@ class Defaults:
 	const zeed : int = 3
 	const period : float = float(map_chunk_size - 1)
 	const octaves : int = 4
-	const persistence : float = 0.5
-	const lacunarity : float = 2.0
+	const persistence : float = 0.55
+	const lacunarity : float = 2.5
 	const level_of_detail : int = 0
 	const terrain_multiplier : float = 10.0 / float(map_chunk_size - 1)
 	const regions = {

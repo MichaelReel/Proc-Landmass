@@ -8,6 +8,7 @@
 [node name="EndlessTerrain" type="Spatial" parent="."]
 script = ExtResource( 1 )
 lod_distances = [ 0.0, 64.0, 128.0, 192.0, 256.0, 320.0 ]
+apply_falloff = true
 
 [node name="CameraControl" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0 )

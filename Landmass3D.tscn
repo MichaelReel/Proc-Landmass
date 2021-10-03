@@ -7,6 +7,8 @@ _data = [ Vector2( 0, 0 ), 0.0, 0.0, 0, 0, Vector2( 0.5, 0 ), 0.0, 0.0, 0, 0, Ve
 
 [node name="Landmass3D" type="Spatial"]
 script = ExtResource( 1 )
+persistence = 0.5
+lacunarity = 2.0
 terrain_multiplier = 1.0
 terrain_height_curve = SubResource( 1 )
 terrain_types = {

@@ -15,9 +15,12 @@ export (int, 0, 5) var level_of_detail : int = NoiseLib.Defaults.level_of_detail
 export (float, 0.0, 2.0, 0.05) var terrain_multiplier : float = NoiseLib.Defaults.terrain_multiplier setget set_terrain_multiplier
 export (Curve) var terrain_height_curve : Curve = NoiseLib.Defaults.default_terrain_curve()
 export (Dictionary) var terrain_types : Dictionary = NoiseLib.Defaults.default_terrain_types() setget set_terrain_types
+export (bool) var apply_falloff : bool = false setget set_apply_falloff
 
 var map_data : ChunkLib.MapData
 var lod_meshes : Array = []
+var falloff_map : Array = []
+
 
 func _init():
 	# min and max LODs must be literals in export above (fix in 4.0 maybe)
@@ -77,6 +80,15 @@ func set_terrain_multiplier(value : float):
 	terrain_multiplier = value
 	editor_updates()
 
+func set_apply_falloff(value : bool):
+	apply_falloff = value
+	if apply_falloff and falloff_map.empty():
+		falloff_map = FalloffLib.generate_falloff_map(
+			NoiseLib.Defaults.map_chunk_size,
+			NoiseLib.Defaults.map_chunk_size
+		)
+	editor_updates()
+
 func update_terrain_data():
 	map_data = ChunkLib.generate_map_data(
 		NoiseLib.Defaults.map_chunk_size, 
@@ -87,7 +99,8 @@ func update_terrain_data():
 		octaves, 
 		persistence, 
 		lacunarity,
-		terrain_types
+		terrain_types,
+		falloff_map
 	)
 
 func update_terrain_mesh(lod : int):

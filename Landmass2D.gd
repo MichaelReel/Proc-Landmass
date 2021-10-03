@@ -12,7 +12,7 @@ const regions = {
 	"Snow": Color(0.9, 0.9, 0.9),
 }
 
-enum DRAW_MODE { NoiseMap, ColorMap }
+enum DRAW_MODE { NoiseMap, ColorMap, FalloffMap }
 
 export (int) var noise_seed : int = NoiseLib.Defaults.zeed setget set_seed
 export (Vector2) var noise_position : Vector2 = Vector2.ZERO setget set_noise_position
@@ -79,5 +79,8 @@ func update_texture_rect():
 			noise_color_array = NoiseLib.generate_height_array(noise_map)
 		DRAW_MODE.ColorMap:
 			noise_color_array = NoiseLib.generate_region_array(noise_map, terrain_types)
+		DRAW_MODE.FalloffMap:
+			noise_map = FalloffLib.generate_falloff_map(width, height)
+			noise_color_array = NoiseLib.generate_height_array(noise_map)
 	var noise_texture = NoiseLib.generate_texture(width, height, noise_color_array, "Land Mass")
 	self.texture = noise_texture

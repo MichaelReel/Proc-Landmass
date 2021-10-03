@@ -72,7 +72,8 @@ static func generate_map_data(
 	octaves: int, 
 	persistence: float, 
 	lacunarity: float,
-	height_color_map: Dictionary
+	height_color_map: Dictionary,
+	falloff_map = null
 ) -> MapData:
 	var noise_map := NoiseLib.generate_noise_map(
 		width, 
@@ -83,7 +84,8 @@ static func generate_map_data(
 		octaves,
 		persistence, 
 		lacunarity,
-		NoiseLib.NormalizeMode.LOCAL if Engine.editor_hint else NoiseLib.NormalizeMode.GLOBAL
+		NoiseLib.NormalizeMode.LOCAL if Engine.editor_hint else NoiseLib.NormalizeMode.GLOBAL,
+		falloff_map
 	)
 	var noise_color_array := NoiseLib.generate_region_array(
 		noise_map, 

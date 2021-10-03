@@ -2,6 +2,7 @@ extends Spatial
 
 export (Array) var lod_distances = NoiseLib.Defaults.default_lod_distances()
 export (float) var viewer_move_threshold_for_chunk_update : float = 8.0
+export (bool) var apply_falloff : bool = false
 
 onready var max_view_distance : float = lod_distances[-1]
 onready var camera_control = get_node("../CameraControl")
@@ -64,7 +65,8 @@ func update_visible_chunks() -> bool:
 					viewed_chunk_coord, 
 					chunk_size,
 					lod_distances,
-					map_generator
+					map_generator,
+					apply_falloff
 				)
 				add_child(terrain_chunk_dict[viewed_chunk_coord])
 			
@@ -93,7 +95,7 @@ class TerrainChunk:
 	var incumbent_lod : int = -1
 	var map_data_received : bool
 	
-	func _init(coords : Vector2, size: int, lod_levels: Array, map_generator : MapGenerator):
+	func _init(coords : Vector2, size: int, lod_levels: Array, map_generator : MapGenerator, apply_falloff : bool):
 		chunk_coords = coords
 		set_name("terrain(" + str(coords.x) + "," + str(coords.y) + ")")
 		position_2d = coords * size
@@ -116,6 +118,7 @@ class TerrainChunk:
 			NoiseLib.Defaults.default_terrain_curve(),
 			NoiseLib.Defaults.default_terrain_types()
 		)
+		mesh_object.set_apply_falloff(apply_falloff)
 		mesh_object.scale = Vector3.ONE * (size + 1)
 		add_child(mesh_object)
 		
